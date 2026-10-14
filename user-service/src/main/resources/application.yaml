@@ -34,3 +34,9 @@ springdoc:
 knife4j:
   # 开启 knife4j 增强（/doc.html 界面）
   enable: true
+hm:
+  jwt:
+    location: classpath:hmall.jks
+    alias: hmall
+    password: hmall123
+    tokenTTL: 30m
