@@ -15,6 +15,10 @@ spring:
       server-addr: 192.168.100.128:8848
       username: ${hm.nacos.username}
       password: ${hm.nacos.password}
+    openfeign:
+      httpclient:
+        hc5:
+          enabled: true
 mybatis-plus:
   configuration:
     default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
