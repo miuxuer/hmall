@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.hmall.api.client.ItemClient;
 import com.hmall.api.dto.ItemDTO;
+import com.hmall.cart.config.CartProperties;
 import com.hmall.cart.domain.dto.CartFormDTO;
 import com.hmall.cart.domain.po.Cart;
 import com.hmall.cart.domain.vo.CartVO;
@@ -37,6 +38,7 @@ import java.util.stream.Collectors;
 public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements ICartService {
 
     private final ItemClient itemClient;
+    private final CartProperties cartProperties;
 /*    private final RestTemplate restTemplate;
     private final DiscoveryClient discoveryClient;*/
 
@@ -145,8 +147,8 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements IC
     private void checkCartsFull(Long userId) {
         // MyBatis-Plus 3.5 起 ChainQuery.count() 的返回值由 int 改成了 Long
         Long count = lambdaQuery().eq(Cart::getUserId, userId).count();
-        if (count != null && count >= 10) {
-            throw new BizIllegalException(StrUtil.format("用户购物车课程不能超过{}", 10));
+        if (count != null && count >= cartProperties.getMaxItems()) {
+            throw new BizIllegalException(StrUtil.format("用户购物车课程不能超过{}", cartProperties.getMaxItems()));
         }
     }
 

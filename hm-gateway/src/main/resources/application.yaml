@@ -3,40 +3,19 @@ server:
 spring:
   application:
     name: gateway
+  profiles:
+    active: dev
   cloud:
     nacos:
       server-addr: 192.168.100.128:8848
-      username: ${hm.nacos.username}
-      password: ${hm.nacos.password}
-    gateway:
-      server:
-        webflux:
-          routes:
-            - id: item-service
-              uri: lb://item-service
-              predicates:
-                - Path=/items/**,/search/**
+      username: nacos
+      password: nacos
+      config:
+        file-extension: yaml
 
-            - id: cart-service
-              uri: lb://cart-service
-              predicates:
-                - Path=/carts/**
-
-            - id: user-service
-              uri: lb://user-service
-              predicates:
-                - Path=/users/**,/addresses/**
-
-            - id: trade-service
-              uri: lb://trade-service
-              predicates:
-                - Path=/orders/**
-
-            - id: pay-service
-              uri: lb://pay-service
-              predicates:
-                - Path=/pay-orders/**
-
+  config:
+    import:
+      - optional:nacos:shared-log.yaml?group=DEFAULT_GROUP&refreshEnabled=true
 hm:
   jwt:
     location: classpath:hmall.jks
