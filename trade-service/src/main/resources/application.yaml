@@ -1,44 +1,34 @@
 server:
   port: 8085
+
 spring:
   application:
-    name: trade-service # 微服务名词
+    name: trade-service
   profiles:
     active: dev
-  datasource:
-    url: jdbc:mysql://${hm.db.host}:3307/hm-trade?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: root
-    password: ${hm.db.pw}
   cloud:
     nacos:
       server-addr: 192.168.100.128:8848
-      username: ${hm.nacos.username}
-      password: ${hm.nacos.password}
+      username: nacos
+      password: nacos
+      config:
+        file-extension: yaml
     openfeign:
       httpclient:
         hc5:
           enabled: true
-mybatis-plus:
-  configuration:
-    default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
-  global-config:
-    db-config:
-      update-strategy: not_null
-      id-type: auto
-logging:
-  level:
-    com.hmall: debug
-  pattern:
-    dateformat: HH:mm:ss:SSS
-  file:
-    path: "logs/${spring.application.name}"
-# 接口文档地址：http://localhost:8081/doc.html
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-  # 只扫描 controller 包，等价于原来 knife4j 的 api-rule-resources
-  packages-to-scan: com.hmall.trade.controller
-knife4j:
-  # 开启 knife4j 增强（/doc.html 界面）
-  enable: true
+
+  config:
+    import:
+      - optional:nacos:shared-jdbc.yaml?group=DEFAULT_GROUP&refreshEnabled=true
+      - optional:nacos:shared-log.yaml?group=DEFAULT_GROUP&refreshEnabled=true
+      - optional:nacos:shared-swagger.yaml?group=DEFAULT_GROUP&refreshEnabled=true
+      - optional:nacos:shared-seata.yaml?group=DEFAULT_GROUP&refreshEnabled=true
+      - optional:nacos:shared-rabbitmq.yaml?group=DEFAULT_GROUP&refreshEnabled=true
+
+
+hm:
+  db:
+    database: hm-trade
+  swagger:
+    package: com.hmall.trade.controller

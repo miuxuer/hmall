@@ -3,11 +3,17 @@ package com.hmall.pay.domain.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+// @Builder 会抑制掉无参构造器，Jackson 3（Boot 4）就反序列化不了请求体，
+// 所以必须显式补回 @NoArgsConstructor，@Builder 还需要全参构造器，一起加上
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Schema(description = "支付下单表单实体")
 public class PayApplyDTO {
     @Schema(description = "业务订单id不能为空")

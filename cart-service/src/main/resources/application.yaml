@@ -34,6 +34,7 @@ spring:
       - optional:nacos:shared-jdbc.yaml?group=DEFAULT_GROUP&refreshEnabled=true
       - optional:nacos:shared-log.yaml?group=DEFAULT_GROUP&refreshEnabled=true
       - optional:nacos:shared-swagger.yaml?group=DEFAULT_GROUP&refreshEnabled=true
+      - optional:nacos:shared-seata.yaml?group=DEFAULT_GROUP&refreshEnabled=true
 
 feign:
   sentinel:
