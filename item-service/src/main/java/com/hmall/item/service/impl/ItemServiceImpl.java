@@ -43,4 +43,17 @@ public class ItemServiceImpl extends ServiceImpl<ItemMapper, Item> implements II
     public List<ItemDTO> queryItemByIds(Collection<Long> ids) {
         return BeanUtils.copyList(listByIds(ids), ItemDTO.class);
     }
+
+    /**
+     * 批量恢复库存
+     */
+    @Override
+    public void restoreStock(List<OrderDetailDTO> items) {
+        String sqlStatement = "com.hmall.item.mapper.ItemMapper.restoreStock";
+        boolean r = executeBatch(items, (sqlSession, entity) -> sqlSession.update(sqlStatement, entity));
+        if (!r) {
+            throw new BizIllegalException("恢复库存失败！");
+        }
+
+    }
 }

@@ -7,6 +7,7 @@ import com.hmall.api.dto.ItemDTO;
 import com.hmall.api.dto.OrderDetailDTO;
 import com.hmall.common.exception.BadRequestException;
 import com.hmall.common.utils.UserContext;
+import com.hmall.trade.constants.MQConstants;
 import com.hmall.trade.domain.dto.OrderFormDTO;
 import com.hmall.trade.domain.po.Order;
 import com.hmall.trade.domain.po.OrderDetail;
@@ -15,6 +16,7 @@ import com.hmall.trade.service.IOrderDetailService;
 import com.hmall.trade.service.IOrderService;
 import lombok.RequiredArgsConstructor;
 import org.apache.seata.spring.annotation.GlobalTransactional;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -39,6 +41,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     private final ItemClient itemClient;
     private final IOrderDetailService detailService;
     private final CartClient cartClient;
+    private final RabbitTemplate rabbitTemplate;
 
     @Override
     @GlobalTransactional
@@ -82,6 +85,12 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         } catch (Exception e) {
             throw new RuntimeException("库存不足！");
         }
+
+        // 发送延时消息，检查订单状态
+        rabbitTemplate.convertAndSend(MQConstants.DELAY_EXCHANGE_NAME, MQConstants.DELAY_ORDER_KEY, order.getId(), message -> {
+            message.getMessageProperties().setDelayLong(1000*60*15L); // 15分钟后自动取消订单
+            return message;
+        });
         return order.getId();
     }
 
@@ -92,6 +101,35 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         order.setStatus(2);
         order.setPayTime(LocalDateTime.now());
         updateById(order);
+    }
+
+    /**
+     * 取消订单，恢复库存
+     */
+    @Override
+    public void cancelOrder(Long orderId) {
+        // 修改订单状态
+        boolean update = lambdaUpdate()
+                .set(Order::getStatus, 5)
+                .set(Order::getUpdateTime, LocalDateTime.now())
+                .eq(Order::getId, orderId)
+                .eq(Order::getStatus, 1)  // 只有未付款的时候才能取消订单
+                .update();
+
+        if(!update){
+            // 订单已经被支付或者已经被取消，直接结束
+            return;
+        }
+        // 根据订单id，查询到所有商品
+        List<OrderDetail> details = detailService.lambdaQuery()
+                .eq(OrderDetail::getOrderId, orderId)
+                .list();
+
+        List<OrderDetailDTO> detailDTOS = details.stream().map(p -> new OrderDetailDTO()
+                        .setItemId(p.getItemId())
+                        .setNum(p.getNum()))
+                .toList();
+        itemClient.restoreStock(detailDTOS);
     }
 
     private List<OrderDetail> buildDetails(Long orderId, List<ItemDTO> items, Map<Long, Integer> numMap) {

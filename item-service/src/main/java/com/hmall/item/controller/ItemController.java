@@ -1,7 +1,6 @@
 package com.hmall.item.controller;
 
 
-import cn.hutool.core.thread.ThreadUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hmall.api.dto.ItemDTO;
 import com.hmall.api.dto.OrderDetailDTO;
@@ -38,7 +37,7 @@ public class ItemController {
     @GetMapping
     public List<ItemDTO> queryItemByIds(@RequestParam("ids") List<Long> ids){
         // TODO 模拟业务延迟
-        ThreadUtil.sleep(500);
+        // ThreadUtil.sleep(500);
         return itemService.queryItemByIds(ids);
     }
 
@@ -83,5 +82,11 @@ public class ItemController {
     @PutMapping("/stock/deduct")
     public void deductStock(@RequestBody List<OrderDetailDTO> items){
         itemService.deductStock(items);
+    }
+
+    @Operation(summary = "批量恢复库存")
+    @PutMapping("/stock/restore")
+    public void restoreStock(@RequestBody List<OrderDetailDTO> items){
+        itemService.restoreStock(items);
     }
 }
